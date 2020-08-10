@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>V-NODE</title>
+</head>
+<body>
+  <div id="root">
+    <div>
+      <div>hello1</div>
+      <div>hello1</div>
+      <div>hello1</div>
+    <ul>
+      <li>1</li>
+      <li>2</li>
+      <li>3</li>
+    </ul>
+    </div>
+  </div>
+  <script>
+    // 为什么使用虚拟DOM  ？ 提高性能 ==》就跟使用 document.createDocumentFragment 一个道理
+    // <div />   => 转换为v-dom {tag:'div'}
+    // 文本节点   => {tag:undefined, value:'wenben'}
+    // <div title="1" class="c" /> => {tag:'div',data:{title:'1',class='c'}}
+    // <div><div/></div> => {tag:'div',children:[{tag:'div'}]}
+
+    class VNode{
+      // tag:标签， data:标签属性，value:文本值， type:标签类型
+      constructor(tag,data,value,type){
+        this.tag      = tag && tag.toLowerCase()
+        this.data     = data
+        this.value    = value
+        this.type     = type
+        this.children = []
+      }
+
+      // 追加子节点
+      appendChild(vnode){
+        this.children.push(vnode)
+      }
+    }
+    
+    // 生成vnode
+    /**
+     * 使用递归 来遍历 DOM 元素，生成虚拟DOM
+     * VUE中的源码使用的是 栈结构，  使用站存储 父元素实现递归生成
+     * 
+    */
+    function generateVNode(node) {
+      let nodeType = node.nodeType;
+      let _vnode = null
+      // 根据nodeType判断节点类型
+      if (nodeType === 1) {
+        //元素节点
+        let nodeName = node.nodeName
+        // 获取属性，是一个类数组
+        let attrs = node.attributes
+        let _attrsObj = {}
+        for(let i = 0 ; i < attrs.length ; i++){ 
+          // attrs[i] 属性节点(nodeType === 2)
+          _attrsObj[attrs[i].nodeName] = attrs[i].nodeValue
+        }
+        _vnode = new VNode(nodeName,_attrsObj,undefined,nodeType)
+
+        //考虑 node 的子元素(巧妙)
+        let childNodes = node.childNodes
+        for(let i = 0 ; i < childNodes.length ; i++){
+          // 递归将子节点添加到_vnode上
+          _vnode.appendChild(generateVNode(childNodes[i]))
+        } 
+
+      }else if (nodeType === 3) {
+        // 文本节点
+        _vnode = new VNode(undefined,undefined,node.nodeValue,nodeType)
+      }
+
+      // 返回虚拟DOM
+      return _vnode
+    }
+
+
+   
+
+
+    // 将 vNode 转换为真正的DOM
+    function parseVNode(vnode) {
+      let nodeType = vnode.type
+      let dom = null
+      if (nodeType === 1) {
+        dom = document.createElement(vnode.tag)
+        if (vnode.data) {
+          let keys = Object.keys(vnode.data)
+          for(let i = 0 ; i < keys.length ; i++){
+            let key = keys[i]
+            let value = vnode.data[key]
+            dom.setAttribute(key,value)
+          }
+        }
+        if (vnode.children) {
+          let length = vnode.children.length
+          for(let j = 0 ; j < length ; j++){
+            let node = parseVNode(vnode.children[j])
+            dom.appendChild(node)
+          }
+        }
+      }else if (nodeType === 3) {
+        dom = document.createTextNode(vnode.value)
+      }
+
+      return dom
+    }
+
+
+    // 将vNode 转换为真正的DOM 老师版
+    function parseVNode2(vnode) {
+      let type = vnode.type
+      let _node = null
+      if (type === 3) {
+        return document.createTextNode(vnode.value)
+      }else if (type === 1) {
+        _node = document.createElement(vnode.tag)
+
+        // 属性
+        let data = vnode.data
+        Object.keys(data).forEach(key=>{
+          let attrName = key
+          let attrValue = data[ key ]
+          _node.setAttribute(attrName,attrValue)
+        })
+
+        // 子节点
+        let children = vnode.children
+        children.forEach(childVNode=>{
+          _node.appendChild(parseVNode2(childVNode)) //递归
+        })
+
+        return _node
+      }
+    }
+
+     // 验证是否正确
+    // 真正的Vue 中也是使用的递归，+ 栈的数据结构
+
+    let Root = document.querySelector('#root')
+    let vnode = generateVNode(Root)
+    console.log('vnode',vnode)
+    let realDOM =  parseVNode(vnode)
+    let realDOM2 = parseVNode2(vnode)
+    console.log(realDOM)
+    console.log(realDOM2);
+    
+  </script>
+</body>
+</html>

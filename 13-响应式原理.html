@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>响应式原理</title>
+</head>
+<body>
+  <script>
+    var obj = {}
+
+    // 给 obj 提供属性
+    obj.name = '张三'
+
+    //等价于
+    Object.defineProperty(obj,'age',{
+      configurable:true,
+      writable:true,
+      enumerable:true,
+      value:19
+    })
+    console.log(obj);
+    
+
+    // get 和 set上
+    // 要响应式就表示在赋值和读取的时候，附带的要做一些事情
+    let _gender
+    Object.defineProperty(obj,'gender',{
+      configurable:true,
+      enumerable:true,//可枚举
+      get(){  
+        //如果使用o.gender来访问数据，就会调用get方法（getter 读取器）
+        return _gender
+      },
+      set(newValue){
+        _gender = newValue
+      }
+    })
+    //如果同时使用 get 和 set 需要一个中间变量存储真正的数据
+    
+    // 问题：这个_gender 被暴露在全局作用域？？
+    // 在Vue中使用 defineRective(target,key,value,enumerable)
+
+
+  </script>
+</body>
+</html>

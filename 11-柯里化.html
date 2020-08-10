@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>柯里化</title>
+</head>
+<body>
+  <script>
+    const str = 'div,p,a,img,ul,li'
+    let tags = str.split(',')
+
+    // 
+    function makeMap(tags) {
+      let set = {}
+      tags.forEach(key => set[key] = true);
+
+
+      return function (tagName) {
+        // truely变量
+        return !!set[tagName]
+      }
+    }
+  </script>
+</body>
+</html>
