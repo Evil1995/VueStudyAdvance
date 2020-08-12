@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <script>
+    // 全局的 event 对象，提供 on，off，emit 方法
+    var event = function () {
+         eventObjs = {}
+
+      return {
+        /**注册事件，可以连续注册，可以注册多个事件*/ 
+        on: function (type,handler) {
+          
+          // 如果在eventObjs中有type的类型，就push,如果没有就创造一个数组在push
+          (eventObjs[type] || (eventObjs[type] = [] )).push(handler)
+
+        },
+        /**移出事件
+         * -如果没有事件，移除所有事件
+         * -如果只带有 事件名 参数，就移除这个事件名下的所有事件
+         * -如果带有 两个 参数，那么就是表示移除某一事件的具体处理函数 
+         * */ 
+        off: function (type,handler){
+          if (arguments.length === 0) {//没有参数，移除所有的处理函数
+            eventObjs = {}
+          }else if (arguments.length === 1) {//只有事件的类型，移除该事件的所有处理函数
+            let _event = eventObjs[type]
+            if (!_event) {
+              return
+            }else{
+              eventObjs[type] = []
+            }
+          }else if (argument.length === 2) {//移除 type 事件的 handler 处理函数
+            // 使用循环移除所有的 该函数 对应的 type 事件
+            let _events = eventObjs[type]
+            if (!_events) {
+              return 
+            }
+            // 倒着循环数组的序号不会受到影响
+            for(let i = _events.length-1 ; i>=0; i--){
+              if (_events[i] === handler) {
+                _events.splice(i,1)
+              }
+            }
+
+          }
+        },
+        /**
+         * 发射事件，触发事件，包装参数，传递给事件处理函数
+         * */ 
+        emit: function (type){
+          let args = Array.prototype.slice.call(arguments,1)
+          let _event = eventObjs[type]
+          if (!_event) {
+            return 
+          }
+          for(let i = 0 ; i<_event.length ; i++){
+            _event[i].apply(null,args)
+          }
+        }
+      }
+
+    }()
+  </script>
+</body>
+</html>
